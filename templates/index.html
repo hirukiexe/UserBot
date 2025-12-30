@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ᴊᴏʏʙᴏʏ ✧</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg-dark: #0f172a;
+    --card-dark: #111827;
+    --blue: #229ED9;
+    --grey: #1f2933;
+    --red: #ef4444;
+    --green: #22c55e;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #0f172a, #020617);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    padding: 20px;
+}
+
+/* Card */
+.card {
+    background: rgba(17, 24, 39, 0.9);
+    width: 100%;
+    max-width: 450px;
+    padding: 28px;
+    border-radius: 18px;
+    box-shadow: 0 20px 40px rgba(0,0,0,.6);
+    border: 1px solid rgba(255,255,255,.05);
+}
+
+/* Header */
+.header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #229ED9, #6366f1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 14px;
+}
+
+.icon i {
+    font-size: 22px;
+}
+
+h1 {
+    font-size: 22px;
+}
+
+.sub {
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+/* Input */
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #d1d5db;
+    font-weight: 500;
+}
+
+textarea {
+    width: 100%;
+    height: 110px;
+    background: var(--grey);
+    border: 2px solid rgba(255,255,255,.1);
+    border-radius: 12px;
+    padding: 14px;
+    color: white;
+    resize: none;
+    outline: none;
+}
+
+textarea:focus {
+    border-color: var(--blue);
+}
+
+/* Button */
+button {
+    margin-top: 18px;
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #229ED9, #6366f1);
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button.loading {
+    opacity: .7;
+    pointer-events: none;
+}
+
+/* Result */
+.result-container {
+    margin-top: 20px;
+    display: none;
+}
+
+.result {
+    padding: 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    animation: slide .4s ease;
+}
+
+@keyframes slide {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Success */
+.success {
+    background: rgba(34,197,94,.15);
+    border: 1px solid var(--green);
+    color: #4ade80;
+}
+
+/* Failed */
+.failed {
+    background: rgba(239,68,68,.15);
+    border: 1px solid var(--red);
+    color: #f87171;
+    animation: shake .4s;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+    75% { transform: translateX(-6px); }
+    100% { transform: translateX(0); }
+}
+
+.details {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #d1d5db;
+}
+
+.details div {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+}
+
+/* Footer */
+.footer {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 12px;
+    color: #6b7280;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <div class="header">
+        <div class="icon">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <div>
+            <h1>JOYBOY ✧</h1>
+            <div class="sub">Telethon Session Connector</div>
+        </div>
+    </div>
+
+    <label>Session String</label>
+    <textarea id="session" placeholder="Paste your Telethon session string..."></textarea>
+
+    <button id="btn" onclick="submitSession()">
+        <i class="fas fa-plug"></i> Connect
+    </button>
+
+    <div class="result-container" id="resultContainer">
+        <div id="result" class="result"></div>
+    </div>
+
+    <div class="footer">
+        <i class="fas fa-lock"></i> Session is never stored
+    </div>
+
+</div>
+
+<script>
+function submitSession() {
+    const session = document.getElementById("session").value.trim();
+    const btn = document.getElementById("btn");
+    const resultBox = document.getElementById("result");
+    const resultContainer = document.getElementById("resultContainer");
+
+    if (!session) {
+        showResult("Please enter a session string", "failed");
+        return;
+    }
+
+    btn.classList.add("loading");
+    btn.innerHTML = "Checking...";
+
+    fetch("/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session })
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.classList.remove("loading");
+        btn.innerHTML = '<i class="fas fa-plug"></i> Connect';
+        showResult(data.text, data.status, data.details);
+    })
+    .catch(() => {
+        btn.classList.remove("loading");
+        btn.innerHTML = '<i class="fas fa-plug"></i> Connect';
+        showResult("Server error. Try again.", "failed");
+    });
+}
+
+function showResult(text, status, details = null) {
+    const resultBox = document.getElementById("result");
+    const resultContainer = document.getElementById("resultContainer");
+
+    resultBox.className = "result " + status;
+
+    let html = `<i class="fas ${status === "success" ? "fa-check-circle" : "fa-triangle-exclamation"}"></i>
+                <div>${text}</div>`;
+
+    if (status === "success" && details) {
+        html += `
+        <div class="details">
+            <div><span>User ID</span><span>${details.userId}</span></div>
+            <div><span>Phone</span><span>${details.phoneNumber}</span></div>
+            <div><span>DC ID</span><span>${details.dcId}</span></div>
+        </div>`;
+    }
+
+    resultBox.innerHTML = html;
+    resultContainer.style.display = "block";
+}
+</script>
+
+</body>
+  </html>
